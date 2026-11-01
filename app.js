@@ -87,7 +87,6 @@ async function sendChatMessage() {
 
     const container = document.getElementById('chat-messages');
 
-    // Pesan Pengguna
     const userMsgHtml = `
         <div class="flex justify-end">
             <div class="bg-panel border border-neonblue/35 rounded-xl p-4 max-w-xl glow-blue">
@@ -104,7 +103,6 @@ async function sendChatMessage() {
     inputEl.value = '';
     container.scrollTop = container.scrollHeight;
 
-    // Loading AI Placeholder
     const aiMsgId = 'ai-msg-' + Date.now();
     const aiMsgHtml = `
         <div class="flex justify-start">
