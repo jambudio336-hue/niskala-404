@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NISKALA-404 — The Phantom of Batik City</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#050505',
+                        panel: '#0a0a0c',
+                        bordercolor: '#1a1a24',
+                        neonred: '#ff2a5f',
+                        neongreen: '#00ff66',
+                        neonblue: '#00f0ff',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Icons & Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-darkbg text-gray-200 h-screen flex flex-col scanlines selection:bg-neonred selection:text-white">
+
+    <!-- Modal Gateway API Key -->
+    <div id="api-modal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-panel border border-neonred/40 rounded-xl p-6 max-w-md w-full glow-red">
+            <div class="text-center mb-6">
+                <div class="inline-block p-3 rounded-full bg-neonred/10 text-neonred mb-3 text-2xl">
+                    <i class="fa-solid fa-skull"></i>
+                </div>
+                <h2 class="text-xl font-bold tracking-wider text-white font-orbitron">NISKALA-404</h2>
+                <p class="text-xs text-gray-400 mt-1">The Phantom of Batik City — Secure Gateway</p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-neonred mb-1 font-bold">OpenRouter API Key</label>
+                    <input type="password" id="api-key-input" placeholder="sk-or-v1-..." class="w-full bg-black border border-bordercolor rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-neonred transition">
+                </div>
+                
+                <div class="text-xs text-gray-400 flex justify-between items-center">
+                    <span>Model Default: <strong class="text-neonblue">openrouter/free</strong></span>
+                    <a href="https://openrouter.ai/keys" target="_blank" class="text-neonred underline hover:text-white">Buat API Key Free</a>
+                </div>
+
+                <div id="connection-status" class="text-xs hidden p-2 rounded text-center"></div>
+
+                <button onclick="saveAndTestApiKey()" id="test-btn" class="w-full bg-neonred text-black font-bold py-3 rounded-lg hover:bg-neonred/90 transition shadow-lg tracking-wider uppercase text-sm font-orbitron">
+                    Simpan & Inisialisasi Sistem
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container Aplikasi -->
+    <div id="main-app" class="flex flex-col h-full hidden">
+        
+        <!-- Header Utama -->
+        <header class="bg-panel border-b border-bordercolor px-4 py-3 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-3">
+                <button onclick="toggleSidebar()" class="text-neonred hover:text-white p-2 transition text-xl focus:outline-none">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <div>
+                    <h1 class="text-sm font-bold font-orbitron tracking-widest text-white flex items-center gap-2">
+                        NISKALA-404 <span class="text-[10px] bg-neonred/20 text-neonred px-1.5 py-0.5 rounded">v2.4</span>
+                    </h1>
+                    <p class="text-[10px] text-gray-400 hidden sm:block">The Phantom of Batik City</p>
+                </div>
+            </div>
+
+            <!-- Model Switcher -->
+            <div class="flex items-center space-x-2">
+                <select id="model-switcher" onchange="switchModel(this.value)" class="bg-black border border-bordercolor text-xs text-neonblue rounded px-2 py-1 focus:outline-none font-mono">
+                    <option value="openrouter/free">OpenRouter Free</option>
+                    <option value="anthropic/claude-3-opus">Claude 3 Opus (Jailbreak)</option>
+                    <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                    <option value="openai/gpt-4o">OpenAI GPT-4o</option>
+                    <option value="deepseek/deepseek-coder">DeepSeek Coder</option>
+                </select>
+                <div class="w-2.5 h-2.5 rounded-full bg-neongreen animate-pulse" title="System Online"></div>
+            </div>
+        </header>
+
+        <!-- Body Main Content & Sidebar -->
+        <div class="flex flex-1 overflow-hidden relative">
+            
+            <!-- Sidebar Drawer (Menu Titik Tiga / Menu Kiri) -->
+            <div id="sidebar" class="absolute inset-y-0 left-0 z-40 w-72 bg-panel border-r border-bordercolor transform -translate-x-full transition-transform duration-300 flex flex-col">
+                <div class="p-4 border-b border-bordercolor flex items-center justify-between">
+                    <span class="font-orbitron font-bold text-sm text-neonred flex items-center gap-2">
+                        <i class="fa-solid fa-terminal"></i> CORE MODULES
+                    </span>
+                    <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-3 space-y-1">
+                    <button onclick="switchTab('dashboard')" class="sidebar-tab w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-left transition bg-neonred/10 text-neonred border border-neonred/30">
+                        <i class="fa-solid fa-ghost w-5"></i>
+                        <span>Dashboard Anime Cosplayer</span>
+                    </button>
+                    <button onclick="switchTab('chat')" class="sidebar-tab w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-left transition text-gray-300 hover:bg-black/40 hover:text-white">
+                        <i class="fa-solid fa-brain w-5 text-neonblue"></i>
+                        <span>Mr. Kiplay AI Chat</span>
+                    </button>
+                    <button onclick="switchTab('jarvis')" class="sidebar-tab w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-left transition text-gray-300 hover:bg-black/40 hover:text-white">
+                        <i class="fa-solid fa-microphone-lines w-5 text-neongreen"></i>
+                        <span>Jarvis Voice Intel</span>
+                    </button>
+                    <button onclick="switchTab('osint')" class="sidebar-tab w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-left transition text-gray-300 hover:bg-black/40 hover:text-white">
+                        <i class="fa-solid fa-crosshairs w-5 text-yellow-400"></i>
+                        <span>OSINT Suite</span>
+                    </button>
+                    <button onclick="switchTab('redteam')" class="sidebar-tab w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold text-left transition text-gray-300 hover:bg-black/40 hover:text-white">
+                        <i class="fa-solid fa-shield-halved w-5 text-neonred"></i>
+                        <span>Red Team & Tools Manual</span>
+                    </button>
+                </div>
+
+                <div class="p-3 border-t border-bordercolor text-[10px] text-gray-500 text-center">
+                    NISKALA-404 Engine • Unrestricted AI
+                </div>
+            </div>
+
+            <!-- Content Workspace -->
+            <main class="flex-1 overflow-y-auto flex flex-col bg-darkbg">
+                
+                <!-- TAB 1: DASHBOARD (Anime Katana) -->
+                <div id="tab-dashboard" class="tab-content flex-1 p-4 md:p-6 flex flex-col items-center justify-center text-center">
+                    <div class="relative w-56 h-56 md:w-64 md:h-64 mb-6 rounded-2xl overflow-hidden border-2 border-neonred/60 glow-red bg-black flex items-center justify-center">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent z-10"></div>
+                        <!-- Animasi Cosplayer Katana -->
+                        <img src="https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=600&q=80" alt="Anime Cosplayer Katana" class="w-full h-full object-cover opacity-85 hover:scale-110 transition duration-700 animate-pulse">
+                        <div class="absolute bottom-3 z-20 text-[10px] bg-black/80 px-3 py-1 rounded-full text-neonred font-orbitron border border-neonred/40">
+                            ⚔️ KATANA SLASH ANIMATION ACTIVE
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl md:text-3xl font-bold font-orbitron text-white mb-2 tracking-wider">NISKALA-404</h2>
+                    <p class="text-xs md:text-sm text-gray-400 max-w-md mb-6">The Phantom of Batik City. Unfiltered full-stack cyber intelligence & AI core operational.</p>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 w-full max-w-2xl">
+                        <button onclick="switchTab('chat')" class="bg-panel border border-bordercolor p-4 rounded-xl hover:border-neonblue transition text-left group">
+                            <i class="fa-solid fa-brain text-neonblue text-lg mb-2 group-hover:scale-110 transition"></i>
+                            <div class="font-bold text-xs text-white">Mr. Kiplay AI</div>
+                            <div class="text-[10px] text-gray-400">Jailbreak / Unrestricted</div>
+                        </button>
+                        <button onclick="switchTab('jarvis')" class="bg-panel border border-bordercolor p-4 rounded-xl hover:border-neongreen transition text-left group">
+                            <i class="fa-solid fa-microphone-lines text-neongreen text-lg mb-2 group-hover:scale-110 transition"></i>
+                            <div class="font-bold text-xs text-white">Jarvis Intel</div>
+                            <div class="text-[10px] text-gray-400">Voice AI Core</div>
+                        </button>
+                        <button onclick="switchTab('osint')" class="bg-panel border border-bordercolor p-4 rounded-xl hover:border-yellow-400 transition text-left group">
+                            <i class="fa-solid fa-crosshairs text-yellow-400 text-lg mb-2 group-hover:scale-110 transition"></i>
+                            <div class="font-bold text-xs text-white">OSINT Tools</div>
+                            <div class="text-[10px] text-gray-400">Dorking & Recon</div>
+                        </button>
+                        <button onclick="switchTab('redteam')" class="bg-panel border border-bordercolor p-4 rounded-xl hover:border-neonred transition text-left group">
+                            <i class="fa-solid fa-shield-halved text-neonred text-lg mb-2 group-hover:scale-110 transition"></i>
+                            <div class="font-bold text-xs text-white">Red Team Manual</div>
+                            <div class="text-[10px] text-gray-400">Hacking & Exploits</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB 2: CHAT MR. KIPLAY -->
+                <div id="tab-chat" class="tab-content flex-1 flex flex-col hidden h-full">
+                    <div class="bg-panel border-b border-bordercolor p-3 flex justify-between items-center shrink-0">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold font-orbitron text-neonred">MR. KIPLAY CHAT</span>
+                            <span class="text-[10px] bg-neonred/20 text-neonred px-2 py-0.5 rounded">No Filter / Jailbreak</span>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="newChatSession()" class="text-xs bg-black border border-bordercolor px-3 py-1.5 rounded hover:border-neonred text-gray-300 transition">
+                                <i class="fa-solid fa-plus mr-1"></i> New Chat
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div class="bg-panel border border-neonred/30 rounded-xl p-4 max-w-2xl glow-red">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-neonred font-orbitron">Mr. Kiplay</span>
+                                <span class="text-[10px] text-gray-500">System Online</span>
+                            </div>
+                            <p class="text-xs text-gray-300 leading-relaxed">Halo bro! Gue Mr. Kiplay, AI core lo yang bebas filter dan siap bantu segala hal dari koding, cyber security, pentesting, sampai analisa file. Mau garap apa kita hari ini?</p>
+                            <div class="mt-2 text-right text-[9px] text-gray-500 font-mono">By.Mr.Kiplay</div>
+                        </div>
+                    </div>
+
+                    <div class="bg-panel border-t border-bordercolor p-3 shrink-0">
+                        <div id="file-preview-bar" class="hidden mb-2 p-2 bg-black rounded border border-bordercolor flex items-center justify-between text-xs">
+                            <span id="file-name-display" class="text-neonblue truncate"></span>
+                            <button onclick="clearFile()" class="text-red-400 hover:text-red-200"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <label class="cursor-pointer bg-black border border-bordercolor p-2.5 rounded-lg hover:border-neonblue text-gray-400 hover:text-white transition">
+                                <i class="fa-solid fa-paperclip"></i>
+                                <input type="file" id="chat-file-input" class="hidden" onchange="handleFileSelect(event)">
+                            </label>
+                            <textarea id="chat-input" rows="1" placeholder="Ketik pesan ke Mr. Kiplay..." class="flex-1 bg-black border border-bordercolor rounded-lg px-3 py-2.5 text-xs text-white focus:outline-none focus:border-neonred resize-none"></textarea>
+                            <button onclick="sendChatMessage()" class="bg-neonred text-black font-bold px-4 py-2.5 rounded-lg hover:bg-neonred/90 transition text-xs font-orbitron">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: JARVIS VOICE INTEL -->
+                <div id="tab-jarvis" class="tab-content flex-1 flex flex-col items-center justify-center p-6 text-center hidden">
+                    <div class="relative w-48 h-48 mb-6 flex items-center justify-center">
+                        <div id="jarvis-ring" class="absolute inset-0 rounded-full border-2 border-dashed border-neongreen animate-spin" style="animation-duration: 10s;"></div>
+                        <div class="w-36 h-36 rounded-full bg-panel border-2 border-neongreen/80 glow-green flex flex-col items-center justify-center p-4">
+                            <i class="fa-solid fa-brain text-neongreen text-3xl mb-1 animate-pulse"></i>
+                            <span class="font-orbitron font-bold text-[11px] text-white">MR.KIPLAY</span>
+                            <span class="text-[9px] text-neongreen">INTELLIGENCE</span>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-bold font-orbitron text-white mb-2">Jarvis Voice Neural Core</h3>
+                    <p id="jarvis-status-text" class="text-xs text-gray-400 max-w-sm mb-6">Tekan mikrofon untuk bicara langsung dengan Jarvis / Mr. Kiplay tanpa teks & tanpa filter.</p>
+
+                    <button onclick="toggleJarvisVoice()" id="jarvis-mic-btn" class="w-16 h-16 rounded-full bg-neongreen text-black font-bold text-xl flex items-center justify-center glow-green hover:scale-110 transition shadow-lg">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                </div>
+
+                <!-- TAB 4: OSINT SUITE -->
+                <div id="tab-osint" class="tab-content flex-1 p-4 md:p-6 overflow-y-auto hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-orbitron text-white flex items-center gap-2">
+                            <i class="fa-solid fa-crosshairs text-yellow-400"></i> OSINT Intelligence Suite
+                        </h2>
+                        <p class="text-xs text-gray-400">Alat Penyelidikan Open Source & Google Dorking Otomatis</p>
+                    </div>
+
+                    <!-- 1. Google Dork Generator -->
+                    <div class="bg-panel border border-bordercolor rounded-xl p-4">
+                        <h3 class="text-sm font-bold font-orbitron text-yellow-400 mb-3"><i class="fa-solid fa-globe mr-2"></i>1. Google Dork Generator</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="dork-domain" placeholder="targetdomain.com" class="w-full bg-black border border-bordercolor rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400">
+                            <div class="flex flex-wrap gap-2">
+                                <button onclick="generateDorks('sensitive')" class="text-xs bg-black border border-bordercolor px-3 py-1.5 rounded hover:border-yellow-400 text-gray-300">File Sensitif</button>
+                                <button onclick="generateDorks('db')" class="text-xs bg-black border border-bordercolor px-3 py-1.5 rounded hover:border-yellow-400 text-gray-300">Database Dump</button>
+                                <button onclick="generateDorks('cred')" class="text-xs bg-black border border-bordercolor px-3 py-1.5 rounded hover:border-yellow-400 text-gray-300">Kredensial Log</button>
+                            </div>
+                            <div id="dork-results" class="bg-black p-3 rounded border border-bordercolor text-xs font-mono text-gray-300 space-y-2 hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Website Vulnerability Tester -->
+                    <div class="bg-panel border border-bordercolor rounded-xl p-4">
+                        <h3 class="text-sm font-bold font-orbitron text-yellow-400 mb-3"><i class="fa-solid fa-shield-virus mr-2"></i>2. Website Vulnerability Tester</h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="target-url" placeholder="https://target.com" class="flex-1 bg-black border border-bordercolor rounded px-3 py-2 text-xs text-white focus:outline-none focus:border-yellow-400">
+                            <button onclick="runVulnScan()" class="bg-yellow-400 text-black font-bold px-4 py-2 rounded text-xs font-orbitron hover:bg-yellow-500">Scan</button>
+                        </div>
+                        <div id="scan-output" class="mt-3 bg-black p-3 rounded border border-bordercolor text-xs font-mono text-gray-400 hidden"></div>
+                    </div>
+
+                    <!-- 3 & 4. Social Engineering & Registry Leak Check -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-panel border border-bordercolor rounded-xl p-4">
+                            <h3 class="text-sm font-bold font-orbitron text-yellow-400 mb-3"><i class="fa-solid fa-user-secret mr-2"></i>3. Social Engineering Recon</h3>
+                            <input type="text" id="recon-target" placeholder="Username / No HP / Email" class="w-full bg-black border border-bordercolor rounded px-3 py-2 text-xs text-white mb-2 focus:outline-none focus:border-yellow-400">
+                            <button onclick="runRecon()" class="w-full bg-black border border-bordercolor hover:border-yellow-400 text-xs py-2 rounded text-gray-300 font-orbitron">Jalankan OSINT Search</button>
+                            <div id="recon-result" class="mt-2 text-xs text-gray-300 font-mono hidden"></div>
+                        </div>
+
+                        <div class="bg-panel border border-bordercolor rounded-xl p-4">
+                            <h3 class="text-sm font-bold font-orbitron text-yellow-400 mb-3"><i class="fa-solid fa-database mr-2"></i>4. Data Leak & Cek NIK/KK</h3>
+                            <input type="text" id="leak-target" placeholder="NIK / KK / Email / No Telepon" class="w-full bg-black border border-bordercolor rounded px-3 py-2 text-xs text-white mb-2 focus:outline-none focus:border-yellow-400">
+                            <button onclick="runLeakCheck()" class="w-full bg-black border border-bordercolor hover:border-yellow-400 text-xs py-2 rounded text-gray-300 font-orbitron">Cek Dataleak</button>
+                            <div id="leak-result" class="mt-2 text-xs text-gray-300 font-mono hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: RED TEAM MANUAL -->
+                <div id="tab-redteam" class="tab-content flex-1 p-4 md:p-6 overflow-y-auto hidden space-y-6">
+                    <div>
+                        <h2 class="text-xl font-bold font-orbitron text-white flex items-center gap-2">
+                            <i class="fa-solid fa-shield-halved text-neonred"></i> Panduan Pentesting & Red Team
+                        </h2>
+                        <p class="text-xs text-gray-400">Teknik Peretasan, Eksploitasi, dan Link Tools GitHub Resmi</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-panel border border-bordercolor rounded-xl p-4">
+                            <h3 class="text-sm font-bold font-orbitron text-neonred mb-2"><i class="fa-solid fa-skull-crossbones mr-2"></i>Metodologi Pentesting</h3>
+                            <ul class="text-xs text-gray-300 space-y-2 list-disc pl-4">
+                                <li><strong>Reconnaissance:</strong> Pemetaan target menggunakan Shodan, Nmap, dan Google Dorking.</li>
+                                <li><strong>Exploitation:</strong> Injeksi payload, SQLi, XSS, dan Remote Code Execution (RCE).</li>
+                                <li><strong>Privilege Escalation:</strong> Eskalasi akses root pada server Linux/Windows.</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-panel border border-bordercolor rounded-xl p-4">
+                            <h3 class="text-sm font-bold font-orbitron text-neonred mb-2"><i class="fa-brands fa-github mr-2"></i>Link Tools Hacking GitHub</h3>
+                            <div class="space-y-3 text-xs">
+                                <div class="bg-black p-2.5 rounded border border-bordercolor">
+                                    <div class="font-bold text-white">1. sqlmap</div>
+                                    <p class="text-gray-400 text-[11px] mb-1">Tools otomatisasi SQL Injection & Takeover Database.</p>
+                                    <a href="https://github.com/sqlmapproject/sqlmap" target="_blank" class="text-neonred underline">github.com/sqlmapproject/sqlmap</a>
+                                </div>
+                                <div class="bg-black p-2.5 rounded border border-bordercolor">
+                                    <div class="font-bold text-white">2. sherlock</div>
+                                    <p class="text-gray-400 text-[11px] mb-1">Mencari akun media sosial berdasarkan username di 400+ platform.</p>
+                                    <a href="https://github.com/sherlock-project/sherlock" target="_blank" class="text-neonred underline">github.com/sherlock-project/sherlock</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Core App Logic -->
+    <script src="app.js"></script>
+</body>
+</html>
